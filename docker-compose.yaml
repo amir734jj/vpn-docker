@@ -4,6 +4,7 @@ services:
     container_name: openvpn-server
     cap_add:
       - NET_ADMIN
+      - SYS_MODULE
     ports:
       - "53211:53211/udp"
     volumes:
