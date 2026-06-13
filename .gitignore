@@ -1,0 +1,3 @@
+*.ovpn
+openvpn-backup.tar.gz
+.env

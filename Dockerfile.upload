@@ -1,0 +1,5 @@
+FROM node:alpine
+RUN apk add --no-cache curl
+WORKDIR /app
+COPY upload-configs.mjs /app/
+CMD ["node", "/app/upload-configs.mjs"]
