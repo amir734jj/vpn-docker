@@ -55,12 +55,12 @@ services:
       - openvpn-data:/openvpn:ro
       - wireguard-data:/wireguard:ro
     environment:
-      - FTP_HOST
-      - FTP_USER
-      - FTP_PASS
-      - FTP_PATH
-      - CLIENT_NAME
-      - WG_PEERS
+      - FTP_HOST=${FTP_HOST}
+      - FTP_USER=${FTP_USER}
+      - FTP_PASS=${FTP_PASS}
+      - FTP_PATH=${FTP_PATH}
+      - CLIENT_NAME=${CLIENT_NAME}
+      - WG_PEERS=${WG_PEERS}
     restart: "no"
 
 volumes:
