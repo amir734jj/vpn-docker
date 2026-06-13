@@ -69,16 +69,16 @@ for (const peer of peers) {
   await waitForFile(`/wireguard/${peer}/${peer}.conf`, `WireGuard ${peer}`);
 }
 
-console.log(`==> Uploading OpenVPN config to ${ftpBase}/`);
-upload(ovpnFile, `${clientName}.ovpn`);
+console.log(`==> Uploading OpenVPN config to ${ftpBase}/openvpn/`);
+upload(ovpnFile, `openvpn/${clientName}.ovpn`);
 
 for (const peer of peers) {
   const wgDir = `/wireguard/${peer}`;
-  console.log(`==> Uploading WireGuard ${peer} to ${ftpBase}/`);
-  upload(`${wgDir}/${peer}.conf`, `${peer}.conf`);
+  console.log(`==> Uploading WireGuard ${peer} to ${ftpBase}/wireguard/`);
+  upload(`${wgDir}/${peer}.conf`, `wireguard/${peer}.conf`);
   const qrPath = `${wgDir}/${peer}.png`;
   if (existsSync(qrPath)) {
-    upload(qrPath, `${peer}.png`);
+    upload(qrPath, `wireguard/${peer}.png`);
   }
 }
 
