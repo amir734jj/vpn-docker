@@ -19,11 +19,11 @@ OpenVPN + WireGuard in Docker, designed for Coolify. Everything is automated and
 
 **Optional:**
 
-- `CLIENT_NAME` — OpenVPN client name (default: `my-client`)
+- `CLIENT_NAME` — OpenVPN client name (default: `coolify`)
 - `VPN_PROTO` — protocol, `udp` or `tcp` (default: `udp`)
 - `VPN_PORT` — external port for client config (default: `53211`)
 - `VPN_DNS` — DNS pushed to OpenVPN clients (default: `1.1.1.1`)
-- `WG_PEERS` — number of WireGuard peers to generate (default: `1`)
+- `WG_PEERS` — WireGuard peers: number or comma-separated names (default: `coolify`)
 - `WG_DNS` — DNS for WireGuard peers (default: `1.1.1.1`)
 - `WG_SUBNET` — WireGuard internal subnet (default: `10.13.13.0`)
 - `WG_ALLOWED_IPS` — WireGuard allowed IPs (default: `0.0.0.0/0`)

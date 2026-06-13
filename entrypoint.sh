@@ -20,7 +20,7 @@ export EASYRSA_BATCH=1
 
 MARKER="${OPENVPN}/.initialized"
 VPN_SERVER_URL="${VPN_SERVER_URL:?VPN_SERVER_URL environment variable is required}"
-CLIENT_NAME="${CLIENT_NAME:-my-client}"
+CLIENT_NAME="${CLIENT_NAME:-coolify}"
 VPN_PROTO="${VPN_PROTO:-udp}"
 VPN_PORT="${VPN_PORT:-53211}"
 VPN_DNS="${VPN_DNS:-1.1.1.1}"
@@ -31,8 +31,9 @@ if [ ! -f "$MARKER" ]; then
     # Step 1: Generate server configuration
     # ovpn_genconfig sets server listen port from URL, so we use 1194 (default)
     # The external port (VPN_PORT) is only for the client remote line
+    # -N enables NAT (iptables MASQUERADE) so clients can reach the internet
     echo "==> Generating server config for ${VPN_PROTO}://${VPN_SERVER_URL}:1194"
-    ovpn_genconfig -u "${VPN_PROTO}://${VPN_SERVER_URL}:1194" -n "${VPN_DNS}"
+    ovpn_genconfig -u "${VPN_PROTO}://${VPN_SERVER_URL}:1194" -N -n "${VPN_DNS}"
 
     # Step 2: Initialize PKI (CA, DH params, ta.key, server cert, CRL)
     # Sources ovpn_env.sh internally, uses OVPN_CN for server cert

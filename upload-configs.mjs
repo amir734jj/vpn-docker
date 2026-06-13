@@ -9,9 +9,18 @@ if (!FTP_USER) { console.error('ERROR: FTP_USER is required'); process.exit(1); 
 if (!FTP_PASS) { console.error('ERROR: FTP_PASS is required'); process.exit(1); }
 
 const ftpBase = `ftp://${FTP_HOST}${FTP_PATH || '/vpn'}`;
-const clientName = CLIENT_NAME || 'my-client';
-const wgPeers = parseInt(WG_PEERS || '1', 10);
+const clientName = CLIENT_NAME || 'coolify';
+const wgPeersRaw = WG_PEERS || 'coolify';
 const maxWait = parseInt(MAX_WAIT || '120', 10);
+
+// Parse WG_PEERS: if numeric, peers are peer1..peerN; if names, peers are peer_name
+function parsePeers(raw) {
+  const n = parseInt(raw, 10);
+  if (!isNaN(n) && n > 0) {
+    return Array.from({ length: n }, (_, i) => `peer${i + 1}`);
+  }
+  return raw.split(',').map(s => `peer_${s.trim()}`);
+}
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -55,20 +64,21 @@ function uploadDir(localDir, remoteDir) {
 const ovpnFile = `/openvpn/clients/${clientName}.ovpn`;
 await waitForFile(ovpnFile, `OpenVPN config (${clientName})`);
 
-for (let p = 1; p <= wgPeers; p++) {
-  await waitForFile(`/wireguard/peer${p}/peer${p}.conf`, `WireGuard peer${p}`);
+const peers = parsePeers(wgPeersRaw);
+for (const peer of peers) {
+  await waitForFile(`/wireguard/${peer}/${peer}.conf`, `WireGuard ${peer}`);
 }
 
-console.log(`==> Uploading OpenVPN configs to ${ftpBase}openvpn/`);
+console.log(`==> Uploading OpenVPN configs to ${ftpBase}/openvpn/`);
 upload(ovpnFile, `openvpn/${clientName}.ovpn`);
 
-for (let p = 1; p <= wgPeers; p++) {
-  const wgDir = `/wireguard/peer${p}`;
-  console.log(`==> Uploading WireGuard peer${p} to ${ftpBase}/wireguard/`);
-  upload(`${wgDir}/peer${p}.conf`, `wireguard/peer${p}.conf`);
-  const qrPath = `${wgDir}/peer${p}.png`;
+for (const peer of peers) {
+  const wgDir = `/wireguard/${peer}`;
+  console.log(`==> Uploading WireGuard ${peer} to ${ftpBase}/wireguard/`);
+  upload(`${wgDir}/${peer}.conf`, `wireguard/${peer}.conf`);
+  const qrPath = `${wgDir}/${peer}.png`;
   if (existsSync(qrPath)) {
-    upload(qrPath, `wireguard/peer${p}.png`);
+    upload(qrPath, `wireguard/${peer}.png`);
   }
 }
 
