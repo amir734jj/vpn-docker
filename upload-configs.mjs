@@ -8,7 +8,7 @@ if (!FTP_HOST) { console.error('ERROR: FTP_HOST is required'); process.exit(1); 
 if (!FTP_USER) { console.error('ERROR: FTP_USER is required'); process.exit(1); }
 if (!FTP_PASS) { console.error('ERROR: FTP_PASS is required'); process.exit(1); }
 
-const ftpBase = `ftp://${FTP_HOST}${FTP_PATH || '/vpn'}/`;
+const ftpBase = `ftp://${FTP_HOST}${FTP_PATH || '/vpn'}`;
 const clientName = CLIENT_NAME || 'my-client';
 const wgPeers = parseInt(WG_PEERS || '1', 10);
 const maxWait = parseInt(MAX_WAIT || '120', 10);
@@ -33,7 +33,7 @@ async function waitForFile(path, label) {
 function upload(localPath, remotePath) {
   try {
     execSync(
-      `curl -s --ftp-create-dirs -T "${localPath}" "${ftpBase}${remotePath}" --user "${FTP_USER}:${FTP_PASS}" --connect-timeout 10 --max-time 30 2>&1`,
+      `curl -s --ftp-create-dirs -T "${localPath}" "${ftpBase}/${remotePath}" --user "${FTP_USER}:${FTP_PASS}" --connect-timeout 10 --max-time 30 2>&1`,
       { stdio: 'pipe' }
     );
     console.log(`Uploaded ${remotePath}`);
@@ -64,8 +64,12 @@ upload(ovpnFile, `openvpn/${clientName}.ovpn`);
 
 for (let p = 1; p <= wgPeers; p++) {
   const wgDir = `/wireguard/peer${p}`;
-  console.log(`==> Uploading WireGuard peer${p} to ${ftpBase}wireguard/`);
-  uploadDir(wgDir, 'wireguard');
+  console.log(`==> Uploading WireGuard peer${p} to ${ftpBase}/wireguard/`);
+  upload(`${wgDir}/peer${p}.conf`, `wireguard/peer${p}.conf`);
+  const qrPath = `${wgDir}/peer${p}.png`;
+  if (existsSync(qrPath)) {
+    upload(qrPath, `wireguard/peer${p}.png`);
+  }
 }
 
 console.log('==> All VPN configs uploaded to FTP');

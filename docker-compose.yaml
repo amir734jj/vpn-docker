@@ -6,7 +6,7 @@ services:
       - NET_ADMIN
       - SYS_MODULE
     ports:
-      - "53211:53211/udp"
+      - "53211:1194/udp"
     volumes:
       - openvpn-data:/etc/openvpn
       - /lib/modules:/lib/modules:ro

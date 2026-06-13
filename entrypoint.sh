@@ -29,11 +29,10 @@ if [ ! -f "$MARKER" ]; then
     echo "==> First run detected. Initializing OpenVPN..."
 
     # Step 1: Generate server configuration
-    # Creates $OPENVPN/ovpn_env.sh and $OPENVPN/openvpn.conf
-    # -u sets proto://hostname:port (parsed for OVPN_CN, OVPN_PROTO, OVPN_PORT)
-    # -n sets DNS pushed to clients
-    echo "==> Generating server config for ${VPN_PROTO}://${VPN_SERVER_URL}:${VPN_PORT}"
-    ovpn_genconfig -u "${VPN_PROTO}://${VPN_SERVER_URL}:${VPN_PORT}" -n "${VPN_DNS}"
+    # ovpn_genconfig sets server listen port from URL, so we use 1194 (default)
+    # The external port (VPN_PORT) is only for the client remote line
+    echo "==> Generating server config for ${VPN_PROTO}://${VPN_SERVER_URL}:1194"
+    ovpn_genconfig -u "${VPN_PROTO}://${VPN_SERVER_URL}:1194" -n "${VPN_DNS}"
 
     # Step 2: Initialize PKI (CA, DH params, ta.key, server cert, CRL)
     # Sources ovpn_env.sh internally, uses OVPN_CN for server cert
@@ -50,6 +49,14 @@ if [ ! -f "$MARKER" ]; then
     echo "==> Exporting client config to ${OPENVPN}/clients/${CLIENT_NAME}.ovpn"
     mkdir -p "${OPENVPN}/clients"
     ovpn_getclient "${CLIENT_NAME}" > "${OPENVPN}/clients/${CLIENT_NAME}.ovpn"
+
+    # Patch the client config to use the external port (server listens on 1194
+    # internally, but Docker maps VPN_PORT:1194)
+    if [ "${VPN_PORT}" != "1194" ]; then
+        sed -i "s/remote ${VPN_SERVER_URL} 1194/remote ${VPN_SERVER_URL} ${VPN_PORT}/" \
+            "${OPENVPN}/clients/${CLIENT_NAME}.ovpn"
+        echo "==> Patched client config: remote port set to ${VPN_PORT}"
+    fi
 
     # Mark as initialized so subsequent starts skip setup
     touch "$MARKER"
