@@ -25,7 +25,11 @@ VPN_PROTO="${VPN_PROTO:-udp}"
 VPN_PORT="${VPN_PORT:-53211}"
 VPN_DNS="${VPN_DNS:-1.1.1.1}"
 
-if [ ! -f "$MARKER" ]; then
+if [ ! -f "$MARKER" ] || [ ! -f "${OPENVPN}/clients/${CLIENT_NAME}.ovpn" ]; then
+    if [ -f "$MARKER" ]; then
+        echo "==> Client config for ${CLIENT_NAME} not found, reinitializing..."
+        rm -f "$MARKER"
+    fi
     echo "==> First run detected. Initializing OpenVPN..."
 
     # Step 1: Generate server configuration
