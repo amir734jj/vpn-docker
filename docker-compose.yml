@@ -1,0 +1,69 @@
+services:
+  openvpn:
+    build: .
+    container_name: openvpn-server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "53211:53211/udp"
+    volumes:
+      - openvpn-data:/etc/openvpn
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - VPN_SERVER_URL
+      - CLIENT_NAME
+      - VPN_PROTO
+      - VPN_PORT
+      - VPN_DNS
+    restart: unless-stopped
+
+  wireguard:
+    image: lscr.io/linuxserver/wireguard
+    container_name: wireguard-server
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - "53212:51820/udp"
+    volumes:
+      - wireguard-data:/config
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ
+      - SERVERURL=${VPN_SERVER_URL}
+      - SERVERPORT=53212
+      - PEERS=${WG_PEERS:-1}
+      - PEERDNS=${WG_DNS:-1.1.1.1}
+      - INTERNAL_SUBNET=${WG_SUBNET:-10.13.13.0}
+      - ALLOWEDIPS=${WG_ALLOWED_IPS:-0.0.0.0/0}
+    restart: unless-stopped
+
+  upload-configs:
+    build:
+      context: .
+      dockerfile: Dockerfile.upload
+    container_name: vpn-upload-configs
+    depends_on:
+      - openvpn
+      - wireguard
+    volumes:
+      - openvpn-data:/openvpn:ro
+      - wireguard-data:/wireguard:ro
+    environment:
+      - FTP_HOST
+      - FTP_USER
+      - FTP_PASS
+      - FTP_PATH
+      - CLIENT_NAME
+      - WG_PEERS
+    restart: "no"
+
+volumes:
+  openvpn-data:
+    driver: local
+  wireguard-data:
+    driver: local
