@@ -1,4 +1,4 @@
-FROM kylemanna/openvpn
+FROM garfieldwtf/openvpn
 
 COPY entrypoint.sh /usr/local/bin/auto-entrypoint.sh
 RUN chmod +x /usr/local/bin/auto-entrypoint.sh
